@@ -13,19 +13,20 @@ int main() {
 	Image* image = createImage(IMG_WIDTH, IMG_HEIGHT);
 
 
-	for (int r = 0; r < image->height; r++) {
-		for (int c = 0; c < image->width; c++) {
+	for (int y = 0; y < image->height; y++) {
+		for (int x = 0; x < image->width; x++) {
 			Vec3 pixel = {
-				.r = (float)c / image->width,
-				.g = (float)r / image->height,
+				.r = (float)x / image->width,
+				.g = (float)y / image->height,
 				.b = 0.0,
 			};
 
-			image->data[(r*image->width)+c] = pixel;
+			// image->data[(r*image->width)+c] = pixel;
+			setPixel(image, y, x, pixel);
 		}
 	}
 
-	IMG_ERROR_CODES code = writePPM(image, "output.ppm");
+	writePPM(image, "output.ppm");
 
 	freeImage(image);
 	image = NULL;

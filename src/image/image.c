@@ -6,6 +6,7 @@ Image *createImage(unsigned int width, unsigned int height) {
   Image *image = malloc(sizeof(Image));
 
   if (image == NULL) {
+		fprintf(stderr, "Failed to allocate enough memory for image struct.\n");
     return NULL;
   }
 
@@ -15,6 +16,7 @@ Image *createImage(unsigned int width, unsigned int height) {
 	// printf("%d pixels allocated\n", width*height);
 
   if (image->data == NULL) {
+		fprintf(stderr, "Failed to allocate enough memory for image date.\n");
     free(image);
     return NULL;
   }
@@ -34,12 +36,45 @@ void freeImage(Image *image) {
 }
 
 
-IMG_ERROR_CODES writePPM(Image* image, const char* path) {
+void setPixel(Image* image, unsigned int x, unsigned int y, Vec3 pixel) {
+	if (image == NULL) {
+		fprintf(stderr, "setPixel() cannot operate on NULL image.\n");
+		return;
+	}
+
+	if (x >= image->width || y >= image->height) { 
+		fprintf(stderr, "Coordinates (%d, %d) are out bounds. Bounds = (0, 0)->(%d, %d).\n",
+				x, y, image->width-1, image->height-1);
+		return;
+	}
+
+	image->data[(y*image->width)+x] = pixel;
+}
+
+
+Vec3 getPixel (Image* image, unsigned int x, unsigned int y){
+	if (image == NULL) {
+		fprintf(stderr, "setPixel() cannot operate on NULL image.\n");
+		return (Vec3){.r=0.0, .g=0.0, .b=0.0};
+	}
+
+	if (x >= image->width || y >= image->height) { 
+		fprintf(stderr, "Coordinates (%d, %d) are out bounds. Bounds = (0, 0)->(%d, %d).\n",
+				x, y, image->width-1, image->height-1);
+		return (Vec3){.r=0.0, .g=0.0, .b=0.0};
+	}
+
+	return image->data[(y*image->width)+x];
+}
+
+
+void writePPM(Image* image, const char* path) {
 	
 	FILE* file = fopen(path, "w");
 	if (file == NULL) {
-		printf("Cannot open %s\n", path);
-		return FILE_IO;
+		fprintf(stderr, "Cannot open %s\n", path);
+		// *err = FILE_IO;
+		return;
 	}
 
 	printf("Writing Image...\n");
@@ -49,11 +84,12 @@ IMG_ERROR_CODES writePPM(Image* image, const char* path) {
 	printf("Header Writen\n");
 
 	printf("\r%d/%d scanlines complete. %d remaning.", 0, image->height, image->height);
-	for (int r = 0; r < image->height; r++) {
-		for (int c = 0; c < image->width; c++) {
-			int index = (r*image->width)+c;
-			// printf("Array Index %d\n", index);
-			Vec3 pixel = image->data[index];
+	for (int y = 0; y < image->height; y++) {
+		for (int x = 0; x < image->width; x++) {
+			// int index = (r*image->width)+c;
+			// // printf("Array Index %d\n", index);
+			// Vec3 pixel = image->data[index];
+			Vec3 pixel = getPixel(image, y, x);
 
 			int red   = (int)(255.66 * pixel.r);
 			int green = (int)(255.66 * pixel.g);
@@ -61,7 +97,7 @@ IMG_ERROR_CODES writePPM(Image* image, const char* path) {
 
 			fprintf(file, "%d %d %d\n", red, green, blue);
 		}
-		printf("\r%d/%d scanlines complete. %d remaning.", r+1, image->height, (image->height-r-1));
+		printf("\r%d/%d scanlines complete. %d remaning.", y+1, image->height, (image->height-y-1));
 	}
 	printf("\n");
 
@@ -69,5 +105,5 @@ IMG_ERROR_CODES writePPM(Image* image, const char* path) {
 
 	printf("Image finished! YAAAY!!!\n");
 
-	return SUCCESS;
+	return;
 }
