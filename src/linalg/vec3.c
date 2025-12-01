@@ -22,7 +22,7 @@ Vec3 subtract(Vec3 a, Vec3 b) {
 	};
 }
 
-Vec3 scaleV3(float scalar, Vec3 v) {
+Vec3 scaleV3(Vec3 v, float scalar) {
 	return (Vec3){
 		.x = v.x*scalar,
 		.y = v.y*scalar,
@@ -38,7 +38,7 @@ float magnitudeV3(Vec3 v) {
 	return sqrtf(magSqrdV3(v));
 }
 
-Vec3 normalise(Vec3 v) {
+Vec3 normaliseV3(Vec3 v) {
 	const float mag = magnitudeV3(v);
 	return (Vec3){
 		.x = v.x/mag,
