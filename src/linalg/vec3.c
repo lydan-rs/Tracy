@@ -14,7 +14,7 @@ Vec3 addV3(Vec3 a, Vec3 b) {
 	};
 }
 
-Vec3 subtract(Vec3 a, Vec3 b) {
+Vec3 subtractV3(Vec3 a, Vec3 b) {
 	return (Vec3){
 		.x = a.x-b.x,
 		.y = a.y-b.y,

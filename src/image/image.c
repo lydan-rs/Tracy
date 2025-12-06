@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-Image *createImage(unsigned int width, unsigned int height) {
+Image *createImage(unsigned int height, unsigned int width) {
   Image *image = malloc(sizeof(Image));
 
   if (image == NULL) {
@@ -10,8 +10,9 @@ Image *createImage(unsigned int width, unsigned int height) {
     return NULL;
   }
 
-  image->width = width;
   image->height = height;
+  image->width = width;
+	image->aspect = (float)width/height;
   image->data = calloc(width * height, sizeof(Vec3));
 	// printf("%d pixels allocated\n", width*height);
 
@@ -89,7 +90,7 @@ void writePPM(Image* image, const char* path) {
 			// int index = (r*image->width)+c;
 			// // printf("Array Index %d\n", index);
 			// Vec3 pixel = image->data[index];
-			Vec3 pixel = getPixel(image, y, x);
+			Vec3 pixel = getPixel(image, x, y);
 
 			int red   = (int)(255.66 * pixel.r);
 			int green = (int)(255.66 * pixel.g);

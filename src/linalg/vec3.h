@@ -11,7 +11,7 @@ typedef struct {
 
 float  dotV3       (Vec3 a, Vec3 b);
 Vec3   addV3       (Vec3 a, Vec3 b);
-Vec3   subtract    (Vec3 a, Vec3 b);
+Vec3   subtractV3  (Vec3 a, Vec3 b);
 Vec3   scaleV3     (Vec3 v, float t);
 float  magSqrdV3   (Vec3 v);
 float  magnitudeV3 (Vec3 v);

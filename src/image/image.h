@@ -10,12 +10,13 @@ typedef enum {
 } IERR_CODE;
 
 typedef struct {
-	unsigned int width;
 	unsigned int height;
+	unsigned int width;
+	float aspect;
 	Vec3* data;
 } Image;
 
-Image*  createImage (unsigned int width, unsigned int height);
+Image*  createImage (unsigned int height, unsigned int width);
 void    freeImage   (Image* image);
 
 void  setPixel (Image* image, unsigned int x, unsigned int y, Vec3 pixel);
