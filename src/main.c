@@ -1,9 +1,16 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "linalg/vec3.h"
 #include "image/image.h"
 #include "renderer/ray.h"
 
+
+/*
+ * NOTES:
+ * For this project we are using a left handed system.
+ * Y-up, Z extends into the screen.
+ */
 
 #define INDEX_2D(col, row, width) (col + (row * width))
 
@@ -28,7 +35,8 @@ int main() {
 
 	Image* image = createImage(IMG_HEIGHT, IMG_WIDTH);
 
-	Vec3  cameraCenter = {.x=0, .y=0, .z=0};
+	Vec3  cameraCenter = {.x=0, .y=0, .z=2.5};
+	Vec3  sphereCenter = {.x=0, .y=0, .z=5.0};
 	float focalLength  = 1.0;
 	float sensorHeight = 2.0;
 	float sensorWidth  = sensorHeight * image->aspect;
@@ -55,8 +63,10 @@ int main() {
 			Vec3 origin = {
 				.x = pixel0.x + (pixelWidth * x),
 				.y = pixel0.y - (pixelHeight * y),
-				.z = -pixel0.z
+				.z = pixel0.z
 			};
+
+			origin = addV3(origin, cameraCenter);
 
 			Vec3 direction = normaliseV3(
 					subtractV3(origin, cameraCenter)
@@ -75,11 +85,30 @@ int main() {
 
 	for (int y = 0; y < image->height; y++) {
 		for (int x = 0; x < image->width; x++) {
-
 			Ray ray = rays[INDEX_2D(x, y, image->width)];
-			// image->data[(r*image->width)+c] = pixel;
-			// setPixel(image, x, y, pixel);
-			setPixel(image, x, y, rayColor(ray));
+
+			Vec3  u = subtractV3(sphereCenter, ray.origin);
+			float a = dotV3(ray.direction, ray.direction);
+			float b = dotV3(scaleV3(ray.direction, -2.0), u);
+			float c = dotV3(u, u) - 1.0; // Radius is hardcoded to one here.
+			
+			float discriminant = b*b - 4*a*c;
+
+			Vec3 outColor = rayColor(ray);
+
+			if (discriminant >= 0.0) {
+				float discSqrt = sqrtf(discriminant);
+				float t = (-b - discSqrt) / (2.0*a);
+
+				if (t > 0.0) {
+					outColor = normaliseV3(subtractV3(pointAlongRay(ray, t), sphereCenter)); // Surface normal
+					outColor = scaleV3(
+							addV3(outColor, (Vec3){1.0, 1.0, 1.0}),
+								0.5);
+				}
+			}
+
+			setPixel(image, x, y, outColor);
 		}
 	}
 
