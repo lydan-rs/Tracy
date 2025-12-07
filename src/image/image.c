@@ -84,7 +84,7 @@ void writePPM(Image* image, const char* path) {
 
 	printf("Header Writen\n");
 
-	printf("\r%d/%d scanlines complete. %d remaning.", 0, image->height, image->height);
+	// printf("\r%d/%d scanlines complete. %d remaning.", 0, image->height, image->height);
 	for (int y = 0; y < image->height; y++) {
 		for (int x = 0; x < image->width; x++) {
 			// int index = (r*image->width)+c;
@@ -98,9 +98,9 @@ void writePPM(Image* image, const char* path) {
 
 			fprintf(file, "%d %d %d\n", red, green, blue);
 		}
-		printf("\r%d/%d scanlines complete. %d remaning.", y+1, image->height, (image->height-y-1));
+		// printf("\r%d/%d scanlines complete. %d remaning.", y+1, image->height, (image->height-y-1));
 	}
-	printf("\n");
+	// printf("\n");
 
 	fclose(file);
 

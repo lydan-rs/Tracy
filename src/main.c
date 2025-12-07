@@ -1,8 +1,8 @@
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include "linalg/vec3.h"
+#include <math.h>
 #include "image/image.h"
 #include "renderer/ray.h"
 
@@ -20,6 +20,22 @@ const int IMG_WIDTH = 640;
 const int IMG_HEIGHT = 480;
 
 
+float frand01() {
+	return (float)rand() / RAND_MAX;
+}
+
+// TODO: Determine what happens when min is greater than max.
+float frandRange(float min, float max) {
+	float r = frand01();
+	// if (max < min) {
+	// 	float temp = min;
+	// 	min = max;
+	// 	max = temp;
+	// }
+	return min + (max-min)*r;
+}
+
+
 
 Vec3 skyboxColor(Ray r) {
 	float a = 0.5 * (r.direction.y + 1.0);
@@ -31,6 +47,12 @@ Vec3 skyboxColor(Ray r) {
 
 typedef enum {
 	SPHERE,
+	// BOX,
+	// PLANE,
+	// GRID,
+	// CONE,
+	// CYLINDER,
+	// MESH
 } ObjectType;
 
 typedef struct {
@@ -85,7 +107,7 @@ bool testSphereIntersection(SceneObject* object, Ray ray, Intersection* intersec
 				 * 
 				 */
 				float t = (h-discSqrt)/a; // Again, an optimisation.
-				if (t < 0.0) { t = (h+discSqrt)/a; } // Again, an optimisation.
+				if (t < 0.0) { t = (h+discSqrt)/a; } 
 
 				if (t > 0.0) {
 					Vec3 hitPoint = pointAlongRay(ray, t);
@@ -118,104 +140,141 @@ bool testIntersection(SceneObject* object, Ray ray, Intersection* intersection){
 			}
 }
 
+typedef struct {
+	Vec3 position;
+	float focalLength;
+	float _sensorHeight;
+	float _sensorWidth;
+	float _pixDeltaX;
+	float _pixDeltaY;
+	unsigned int _resHoriz;
+	unsigned int _resVert;
+} Camera;
+
+Camera cameraInit(unsigned int horizontalResolution, unsigned int verticalResolution, float sensorWidth){
+	Camera camera;
+	camera.position = (Vec3){0,0,0};
+	camera.focalLength = 1.0;
+
+	camera._resHoriz = horizontalResolution;
+	camera._resVert = verticalResolution;
+	camera._sensorWidth = sensorWidth;
+	camera._sensorHeight = sensorWidth / ((float)horizontalResolution/verticalResolution);
+	camera._pixDeltaX = camera._sensorWidth/camera._resHoriz;
+	camera._pixDeltaY = camera._sensorHeight/camera._resVert;
+
+	return camera;
+}
+
+Ray pixelRay(Camera camera, unsigned int x, unsigned int y){
+				Vec3 origin = {
+					.x = ((camera._pixDeltaX-camera._sensorWidth)/2) + (camera._pixDeltaX*x),
+					.y = ((camera._sensorHeight-camera._pixDeltaY)/2) - (camera._pixDeltaY*y),
+					.z = 0.0
+				};
+
+				Vec3 direction = normaliseV3(
+						(Vec3){
+						.x = origin.x,
+						.y = origin.y,
+						.z = camera.focalLength
+						});
+
+
+				origin = addV3(origin, camera.position);
+				Ray ray = {origin, direction};
+				return ray;
+}
+
+Ray pixelRayWithOffset(Camera camera, unsigned int x, unsigned int y){
+				// By multiplying the delta with frand(), we get a random offset within the pixel bounds.
+				Vec3 origin = {
+					.x = (((camera._pixDeltaX*frand01())-camera._sensorWidth)/2) + (camera._pixDeltaX*x),
+					.y = ((camera._sensorHeight-(camera._pixDeltaY*frand01()))/2) - (camera._pixDeltaY*y),
+					.z = 0.0
+				};
+
+				Vec3 direction = normaliseV3(
+						(Vec3){
+						.x = origin.x,
+						.y = origin.y,
+						.z = camera.focalLength
+						});
+
+
+				origin = addV3(origin, camera.position);
+				Ray ray = {origin, direction};
+				return ray;
+}
+
+
 
 int main() {
 	printf("Hello Bec!\n");
 
 	Image* image = createImage(IMG_HEIGHT, IMG_WIDTH);
 
-	Vec3  cameraCenter = {.x=0, .y=0, .z=0.0};
-	Vec3  sphereCenter = {.x=0, .y=0, .z=5.0};
-	float focalLength  = 1.0;
-	float sensorHeight = 2.0;
-	float sensorWidth  = sensorHeight * image->aspect;
-	float pixelHeight  = sensorHeight/image->height;
-	float pixelWidth   = sensorWidth/image->width;
+	Camera camera = cameraInit(image->width, image->height, 2.0);
+	camera.position = (Vec3){0.0, 0.0, 0.0};
+	camera.focalLength = 1.0;
 
-	Vec3  pixel0 = {
-		.x = (pixelWidth-sensorWidth)/2,
-		.y = (sensorHeight-pixelHeight)/2,
-		.z = focalLength
-	};
-
-	// Init Sensor
-	Ray* rays = malloc(IMG_WIDTH*IMG_HEIGHT*sizeof(Ray));
-
-	/*
-	 * This code models a pin hole camera.
-	 * Will be fine for now.
-	 * But will want to model a camera with the sensor at the camera origin eventually.
-	 */
-	for (int y = 0; y < image->height; y++) {
-		for (int x = 0; x < image->width; x++) {
-
-			Vec3 origin = {
-				.x = pixel0.x + (pixelWidth * x),
-				.y = pixel0.y - (pixelHeight * y),
-				.z = 0
-			};
-
-			Vec3 direction = normaliseV3(
-					(Vec3){
-						.x = origin.x,
-						.y = origin.y,
-						.z = pixel0.z
-						});
-
-			// Vec3 direction = normaliseV3(
-			// 		subtractV3(origin, cameraCenter)
-			// 		);
-
-			origin = addV3(origin, cameraCenter);
-
-
-			// rays[x + (y*image->width)] = (Ray){
-			rays[INDEX_2D(x, y, image->width)] = (Ray){
-				.origin = origin,
-				.direction = direction
-			};
-		}
-	}
-
+	Vec3  sphereCenter = {.x=0, .y=0, .z=2.0};
 
 	SceneObject sphere = {
 		.position = sphereCenter,
 		.type = SPHERE
 	};
 
+	/*
+	 * Multisampling
+	 */
+	const int nSamples = 1;
+	printf("\r%d/%d scanlines complete. %d remaning.", 0, image->height, image->height);
 	for (int y = 0; y < image->height; y++) {
 		for (int x = 0; x < image->width; x++) {
-			Ray ray = rays[INDEX_2D(x, y, image->width)];
+			Vec3 outColor = {0.0,0.0,0.0};
+			for (int s = 0; s < nSamples; s++) { 
 
-			Vec3 outColor = skyboxColor(ray);
-			Intersection intersection;
-
-			bool didHit = testIntersection(&sphere, ray, &intersection);
-
-			if (didHit) {
-				// Handling Backfaces
-				if (dotV3(intersection.surfaceNormal, ray.direction)<=0.0){
-					outColor = intersection.surfaceNormal;
-					outColor = scaleV3(
-							addV3(outColor, (Vec3){1.0, 1.0, 1.0}),
-							0.5);
+				Ray ray;
+				if (nSamples==1) {
+					ray = pixelRay(camera, x, y);
 				} else {
-					outColor = (Vec3){
-						.r = 1.0,
-						.g = 0.25098,
-						.b = 0.98431
-					};
+					ray = pixelRayWithOffset(camera, x, y);
 				}
-			}
 
+
+				Vec3 color = skyboxColor(ray);
+				Intersection intersection;
+
+				bool didHit = testIntersection(&sphere, ray, &intersection);
+
+				if (didHit) {
+					// Handling Backfaces
+					if (dotV3(intersection.surfaceNormal, ray.direction)<=0.0){
+						color = intersection.surfaceNormal;
+						color = scaleV3(
+								addV3(color, (Vec3){1.0, 1.0, 1.0}),
+								0.5);
+					} else {
+						color = (Vec3){
+							.r = 1.0,
+								.g = 0.25098,
+								.b = 0.98431
+						};
+					}
+				}
+				outColor = addV3(outColor, color);
+			}
+			outColor = scaleV3(outColor, 1.0/nSamples);
 			setPixel(image, x, y, outColor);
 		}
+		printf("\r%d/%d scanlines complete. %d remaning.", y+1, image->height, (image->height-y-1));
 	}
+
+	printf("\n");
 
 	writePPM(image, "output.ppm");
 
 	freeImage(image);
 	image = NULL;
-
-
 }
