@@ -4,10 +4,10 @@
 Ray normaliseRay(Ray r) {
 	return (Ray){
 		.origin = r.origin,
-		.direction = normaliseV3(r.direction)
+		.direction = v3_normalise(r.direction)
 	};
 }
 
-Vec3  pointAlongRay (Ray r, float t) {
-	return addV3( r.origin, scaleV3(r.direction, t));
+vec3  pointAlongRay (Ray r, float t) {
+	return v3_add( r.origin, v3_scale(r.direction, t));
 }

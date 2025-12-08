@@ -13,7 +13,7 @@ Image *createImage(unsigned int height, unsigned int width) {
   image->height = height;
   image->width = width;
 	image->aspect = (float)width/height;
-  image->data = calloc(width * height, sizeof(Vec3));
+  image->data = calloc(width * height, sizeof(vec3));
 	// printf("%d pixels allocated\n", width*height);
 
   if (image->data == NULL) {
@@ -37,7 +37,7 @@ void freeImage(Image *image) {
 }
 
 
-void setPixel(Image* image, unsigned int x, unsigned int y, Vec3 pixel) {
+void setPixel(Image* image, unsigned int x, unsigned int y, vec3 pixel) {
 	if (image == NULL) {
 		fprintf(stderr, "setPixel() cannot operate on NULL image.\n");
 		return;
@@ -53,16 +53,16 @@ void setPixel(Image* image, unsigned int x, unsigned int y, Vec3 pixel) {
 }
 
 
-Vec3 getPixel (Image* image, unsigned int x, unsigned int y){
+vec3 getPixel (Image* image, unsigned int x, unsigned int y){
 	if (image == NULL) {
 		fprintf(stderr, "setPixel() cannot operate on NULL image.\n");
-		return (Vec3){.r=0.0, .g=0.0, .b=0.0};
+		return (vec3){.r=0.0, .g=0.0, .b=0.0};
 	}
 
 	if (x >= image->width || y >= image->height) { 
 		fprintf(stderr, "Coordinates (%d, %d) are out bounds. Bounds = (0, 0)->(%d, %d).\n",
 				x, y, image->width-1, image->height-1);
-		return (Vec3){.r=0.0, .g=0.0, .b=0.0};
+		return (vec3){.r=0.0, .g=0.0, .b=0.0};
 	}
 
 	return image->data[(y*image->width)+x];
@@ -90,7 +90,7 @@ void writePPM(Image* image, const char* path) {
 			// int index = (r*image->width)+c;
 			// // printf("Array Index %d\n", index);
 			// Vec3 pixel = image->data[index];
-			Vec3 pixel = getPixel(image, x, y);
+			vec3 pixel = getPixel(image, x, y);
 
 			int red   = (int)(255.66 * pixel.r);
 			int green = (int)(255.66 * pixel.g);

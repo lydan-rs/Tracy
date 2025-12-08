@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "linalg/vec3.h"
+#include "linalg/vector.h"
 #include <math.h>
 #include "image/image.h"
 #include "renderer/ray.h"
@@ -37,11 +37,11 @@ float frandRange(float min, float max) {
 
 
 
-Vec3 skyboxColor(Ray r) {
+vec3 skyboxColor(Ray r) {
 	float a = 0.5 * (r.direction.y + 1.0);
-	return addV3(
-			scaleV3((Vec3){1.0,1.0,1.0}, 1.0-a),
-			scaleV3((Vec3){0.5,0.7,1.0}, a)
+	return v3_add(
+			v3_scale((vec3){1.0,1.0,1.0}, 1.0-a),
+			v3_scale((vec3){0.5,0.7,1.0}, a)
 			);
 }
 
@@ -56,7 +56,7 @@ typedef enum {
 } ObjectType;
 
 typedef struct {
-	Vec3 position;
+	vec3 position;
 	// Transforms
 	ObjectType type;
 	// ShaderType
@@ -66,8 +66,8 @@ typedef struct {
 } SceneObject;
 
 typedef struct {
-	Vec3 surfacePoint;
-	Vec3 surfaceNormal;
+	vec3 surfacePoint;
+	vec3 surfaceNormal;
 	int  primID;
 } Intersection;
 
@@ -82,12 +82,12 @@ bool testSphereIntersection(SceneObject* object, Ray ray, Intersection* intersec
 				return false;
 			}
 
-			Vec3  u = subtractV3(object->position, ray.origin);
+			vec3  u = v3_sub(object->position, ray.origin);
 
 			//Quadratic formula
-			float a = magSqrdV3(ray.direction);
-			float h = dotV3(ray.direction, u); // Aparently an optimisation?
-			float c = magSqrdV3(u) - 1.0; // Radius is hardcarded to one here.
+			float a = v3_mag_sqrd(ray.direction);
+			float h = v3_dot(ray.direction, u); // Aparently an optimisation?
+			float c = v3_mag_sqrd(u) - 1.0; // Radius is hardcarded to one here.
 			float discriminant = h*h - a*c; // And another optimisation??
 
 			if (discriminant >= 0.0) {
@@ -110,9 +110,9 @@ bool testSphereIntersection(SceneObject* object, Ray ray, Intersection* intersec
 				if (t < 0.0) { t = (h+discSqrt)/a; } 
 
 				if (t > 0.0) {
-					Vec3 hitPoint = pointAlongRay(ray, t);
+					vec3 hitPoint = pointAlongRay(ray, t);
 					intersection->surfacePoint = hitPoint;
-					intersection->surfaceNormal = normaliseV3(subtractV3(hitPoint, object->position));
+					intersection->surfaceNormal = v3_normalise(v3_sub(hitPoint, object->position));
 					intersection->primID = 0;
 					return true;
 				}
@@ -141,7 +141,7 @@ bool testIntersection(SceneObject* object, Ray ray, Intersection* intersection){
 }
 
 typedef struct {
-	Vec3 position;
+	vec3 position;
 	float focalLength;
 	float _sensorHeight;
 	float _sensorWidth;
@@ -153,7 +153,7 @@ typedef struct {
 
 Camera cameraInit(unsigned int horizontalResolution, unsigned int verticalResolution, float sensorWidth){
 	Camera camera;
-	camera.position = (Vec3){0,0,0};
+	camera.position = (vec3){0,0,0};
 	camera.focalLength = 1.0;
 
 	camera._resHoriz = horizontalResolution;
@@ -167,42 +167,42 @@ Camera cameraInit(unsigned int horizontalResolution, unsigned int verticalResolu
 }
 
 Ray pixelRay(Camera camera, unsigned int x, unsigned int y){
-				Vec3 origin = {
+				vec3 origin = {
 					.x = ((camera._pixDeltaX-camera._sensorWidth)/2) + (camera._pixDeltaX*x),
 					.y = ((camera._sensorHeight-camera._pixDeltaY)/2) - (camera._pixDeltaY*y),
 					.z = 0.0
 				};
 
-				Vec3 direction = normaliseV3(
-						(Vec3){
+				vec3 direction = v3_normalise(
+						(vec3){
 						.x = origin.x,
 						.y = origin.y,
 						.z = camera.focalLength
 						});
 
 
-				origin = addV3(origin, camera.position);
+				origin = v3_add(origin, camera.position);
 				Ray ray = {origin, direction};
 				return ray;
 }
 
 Ray pixelRayWithOffset(Camera camera, unsigned int x, unsigned int y){
 				// By multiplying the delta with frand(), we get a random offset within the pixel bounds.
-				Vec3 origin = {
+				vec3 origin = {
 					.x = (((camera._pixDeltaX*frand01())-camera._sensorWidth)/2) + (camera._pixDeltaX*x),
 					.y = ((camera._sensorHeight-(camera._pixDeltaY*frand01()))/2) - (camera._pixDeltaY*y),
 					.z = 0.0
 				};
 
-				Vec3 direction = normaliseV3(
-						(Vec3){
+				vec3 direction = v3_normalise(
+						(vec3){
 						.x = origin.x,
 						.y = origin.y,
 						.z = camera.focalLength
 						});
 
 
-				origin = addV3(origin, camera.position);
+				origin = v3_add(origin, camera.position);
 				Ray ray = {origin, direction};
 				return ray;
 }
@@ -215,10 +215,10 @@ int main() {
 	Image* image = createImage(IMG_HEIGHT, IMG_WIDTH);
 
 	Camera camera = cameraInit(image->width, image->height, 2.0);
-	camera.position = (Vec3){0.0, 0.0, 0.0};
+	camera.position = (vec3){0.0, 0.0, 0.0};
 	camera.focalLength = 1.0;
 
-	Vec3  sphereCenter = {.x=0, .y=0, .z=2.0};
+	vec3  sphereCenter = {.x=0, .y=0, .z=2.0};
 
 	SceneObject sphere = {
 		.position = sphereCenter,
@@ -232,7 +232,7 @@ int main() {
 	printf("\r%d/%d scanlines complete. %d remaning.", 0, image->height, image->height);
 	for (int y = 0; y < image->height; y++) {
 		for (int x = 0; x < image->width; x++) {
-			Vec3 outColor = {0.0,0.0,0.0};
+			vec3 outColor = {0.0,0.0,0.0};
 			for (int s = 0; s < nSamples; s++) { 
 
 				Ray ray;
@@ -243,29 +243,29 @@ int main() {
 				}
 
 
-				Vec3 color = skyboxColor(ray);
+				vec3 color = skyboxColor(ray);
 				Intersection intersection;
 
 				bool didHit = testIntersection(&sphere, ray, &intersection);
 
 				if (didHit) {
 					// Handling Backfaces
-					if (dotV3(intersection.surfaceNormal, ray.direction)<=0.0){
+					if (v3_dot(intersection.surfaceNormal, ray.direction)<=0.0){
 						color = intersection.surfaceNormal;
-						color = scaleV3(
-								addV3(color, (Vec3){1.0, 1.0, 1.0}),
+						color = v3_scale(
+								v3_add(color, (vec3){1.0, 1.0, 1.0}),
 								0.5);
 					} else {
-						color = (Vec3){
+						color = (vec3){
 							.r = 1.0,
 								.g = 0.25098,
 								.b = 0.98431
 						};
 					}
 				}
-				outColor = addV3(outColor, color);
+				outColor = v3_add(outColor, color);
 			}
-			outColor = scaleV3(outColor, 1.0/nSamples);
+			outColor = v3_scale(outColor, 1.0/nSamples);
 			setPixel(image, x, y, outColor);
 		}
 		printf("\r%d/%d scanlines complete. %d remaning.", y+1, image->height, (image->height-y-1));
