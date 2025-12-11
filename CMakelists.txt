@@ -10,5 +10,6 @@ target_sources(tracy PRIVATE
 	./src/main.c
 	./src/image/image.c
 	./src/linalg/vector.c
-	./src/renderer/ray.c
+	./src/linalg/ray.c
+	./src/renderer/scene_object.c
 )

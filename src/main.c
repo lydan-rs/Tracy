@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "linalg/vector.h"
-#include <math.h>
 #include "image/image.h"
-#include "renderer/ray.h"
+#include "linalg/ray.h"
+#include "renderer/scene_object.h"
 
 
 /*
@@ -45,100 +45,8 @@ vec3 skyboxColor(Ray r) {
 			);
 }
 
-typedef enum {
-	SPHERE,
-	// BOX,
-	// PLANE,
-	// GRID,
-	// CONE,
-	// CYLINDER,
-	// MESH
-} ObjectType;
 
-typedef struct {
-	vec3 position;
-	// Transforms
-	ObjectType type;
-	// ShaderType
-	// Material
-	// Mesh Data
-	// BBox
-} SceneObject;
 
-typedef struct {
-	vec3 surfacePoint;
-	vec3 surfaceNormal;
-	int  primID;
-} Intersection;
-
-bool testSphereIntersection(SceneObject* object, Ray ray, Intersection* intersection){
-			if (object == NULL) {
-				// TODO: Return Error
-				return false;
-			}
-
-			if (intersection == NULL) {
-				//TODO: Return Error
-				return false;
-			}
-
-			vec3  u = v3_sub(object->position, ray.origin);
-
-			//Quadratic formula
-			float a = v3_mag_sqrd(ray.direction);
-			float h = v3_dot(ray.direction, u); // Aparently an optimisation?
-			float c = v3_mag_sqrd(u) - 1.0; // Radius is hardcarded to one here.
-			float discriminant = h*h - a*c; // And another optimisation??
-
-			if (discriminant >= 0.0) {
-				float discSqrt = sqrtf(discriminant);
-				// TODO: Do I need to handle the + case as well?
-				// TODO: Factor in min and max hit distance.
-				/*
-				 * We probably only want the nearest intersection.
-				 * When the discriminant is positive, it's sqrt will also be positive.
-				 * Regardless of the precise value of -b, the smallest value will always be the one where the discriminant is subtracted from it.
-				 * So no, we do not need to also compute -b + discriminant.
-				 *
-				 * But wait, if we are inside the sphere, then the lesser t might actually be negative, right?
-				 * If this were the case, then we would also want to check the greater t.
-				 * Basically, if the lesser t were negative, but the greater t positive, then we would be inside the sphere.
-				 * If rendering the backface this would be important.
-				 * 
-				 */
-				float t = (h-discSqrt)/a; // Again, an optimisation.
-				if (t < 0.0) { t = (h+discSqrt)/a; } 
-
-				if (t > 0.0) {
-					vec3 hitPoint = pointAlongRay(ray, t);
-					intersection->surfacePoint = hitPoint;
-					intersection->surfaceNormal = v3_normalise(v3_sub(hitPoint, object->position));
-					intersection->primID = 0;
-					return true;
-				}
-			}
-	return false;
-}
-
-bool testIntersection(SceneObject* object, Ray ray, Intersection* intersection){
-			if (object == NULL) {
-				// TODO: Return Error
-				return false;
-			}
-
-			if (intersection == NULL) {
-				//TODO: Return Error
-				return false;
-			}
-
-			switch (object->type) {
-				case SPHERE:
-					return testSphereIntersection(object, ray, intersection);
-				default:
-					// TODO: Return Error
-					return false;
-			}
-}
 
 typedef struct {
 	vec3 position;
@@ -250,8 +158,8 @@ int main() {
 
 				if (didHit) {
 					// Handling Backfaces
-					if (v3_dot(intersection.surfaceNormal, ray.direction)<=0.0){
-						color = intersection.surfaceNormal;
+					if (v3_dot(intersection.hitNormal, ray.direction)<=0.0){
+						color = intersection.hitNormal;
 						color = v3_scale(
 								v3_add(color, (vec3){1.0, 1.0, 1.0}),
 								0.5);
