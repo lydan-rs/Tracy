@@ -50,8 +50,8 @@ ivec2 iv2_normalise(ivec2 v) {
 	};
 }
 
-bool   iv2_contains   (ivec2 v, int x) { return v.x <= x && x <= v.y; }
-bool   iv2_surrounds  (ivec2 v, int x) { return v.x < x && x< v.y; }
+bool   iv2_contains   (ivec2 v, int x) { return imin(v.x, v.y) <= x && x <= imax(v.x, v.y); }
+bool   iv2_surrounds  (ivec2 v, int x) { return imin(v.x, v.y) <  x && x <  imax(v.x, v.y); }
 int    iv2_clamp      (ivec2 v, int x) { return imin(imax(x, v.x), v.y); }
 int    iv2_difference (ivec2 v) { return v.y - v.x; }
 ivec2  iv2_order      (ivec2 v) { return (ivec2){imin(v.x, v.y), imax(v.x, v.y)}; }
@@ -103,8 +103,8 @@ vec2 v2_normalise(vec2 v) {
 	};
 }
 
-bool   v2_contains  (vec2 v, float x) { return v.x <= x && x <= v.y; }
-bool   v2_surrounds (vec2 v, float x) { return v.x < x && x< v.y; }
+bool   v2_contains  (vec2 v, float x) { return fmin(v.x, v.y) <= x && x <= fmin(v.x, v.y); }
+bool   v2_surrounds (vec2 v, float x) { return fmin(v.x, v.y) <  x && x <  fmin(v.x, v.y); }
 float  v2_clamp     (vec2 v, float x) { return fmin(fmax(x, v.x), v.y); }
 float  v2_difference (vec2 v) { return v.y - v.x; }
 vec2   v2_order      (vec2 v) { return (vec2){fmin(v.x, v.y), fmax(v.x, v.y)}; }
