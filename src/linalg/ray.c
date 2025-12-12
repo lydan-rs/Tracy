@@ -14,7 +14,7 @@ vec3  pointAlongRay (Ray r, float t) {
 	return v3_add( r.origin, v3_scale(r.direction, t));
 }
 
-bool intersectRaySphere(Ray ray, vec3 center, float radius, vec3* hitPoint, vec3* hitNormal){
+bool intersectRaySphere(Ray ray, vec3 center, float radius, float* distance, vec3* hitPoint, vec3* hitNormal, vec2* hitUV){
 			vec3  u = v3_sub(center, ray.origin);
 
 			//Quadratic formula
@@ -41,6 +41,8 @@ bool intersectRaySphere(Ray ray, vec3 center, float radius, vec3* hitPoint, vec3
 				 */
 				float t = (h-discSqrt)/a; // Again, an optimisation.
 				if (t < 0.0) { t = (h+discSqrt)/a; } 
+
+				if (distance != NULL) { *distance = t; }
 
 				if (t > 0.0) {
 						vec3 _hitPoint = pointAlongRay(ray, t);
