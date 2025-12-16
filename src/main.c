@@ -129,7 +129,7 @@ vec3 randomUnitVector() {
 };
 
 
-vec3 randomReflectance(vec3 normal) {
+vec3 randomDiffusion(vec3 normal) {
 	vec3 randDir = randomUnitVector();
 	if (v3_dot(randDir, normal) > 0.0) {
 		return randDir;
@@ -137,6 +137,16 @@ vec3 randomReflectance(vec3 normal) {
 		return v3_scale(randDir, -1.0);
 	}
 }
+
+vec3 lambertianDiffusion(vec3 normal) {
+	while (true) {
+		vec3 direction = v3_add(normal, randomUnitVector());
+		if (1E-6 < v3_mag_sqrd(direction)) {
+			return v3_normalise(direction);
+		}
+	}
+}
+
 
 vec3 rayColor(int depth, Ray ray, SceneObject* objects, int lenObjects) {
 	if (depth < 1) {
@@ -170,7 +180,8 @@ vec3 rayColor(int depth, Ray ray, SceneObject* objects, int lenObjects) {
 	}
 
 	if (anyHit) {
-			vec3 newDir = randomReflectance(nearestHit.data.normal);
+			// vec3 newDir = randomDiffusion(nearestHit.data.normal);
+			vec3 newDir = lambertianDiffusion(nearestHit.data.normal);
 			Ray newRay = {nearestHit.data.position, newDir};
 			// Ray newRay = {nearestHit.data.position, nearestHit.data.normal};
 			return v3_scale(rayColor(depth-1, newRay, objects, lenObjects), 0.5);
