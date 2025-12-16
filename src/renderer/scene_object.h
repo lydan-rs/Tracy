@@ -1,7 +1,6 @@
 #ifndef SCENE_OBJECT_H
 #define SCENE_OBJECT_H
 
-#include <stdlib.h>
 #include "../linalg/ray.h"
 
 typedef enum {
@@ -24,13 +23,13 @@ typedef struct {
 	// BBox
 } SceneObject;
 
+
 typedef struct {
-	vec3 hitPoint;
-	vec3 hitNormal;
+	HitData data;
 	int  objectID;
 	int  primID;
-} Intersection;
+} HitRecord;
 
-bool testIntersection(SceneObject* object, Ray ray, Intersection* intersection);
+bool testIntersection(SceneObject* object, Ray ray, HitRecord* intersection);
 
 #endif

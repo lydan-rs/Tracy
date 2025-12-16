@@ -14,13 +14,13 @@ vec3  pointAlongRay (Ray r, float t) {
 	return v3_add( r.origin, v3_scale(r.direction, t));
 }
 
-bool intersectRaySphere(Ray ray, vec3 center, float radius, float* distance, vec3* hitPoint, vec3* hitNormal, vec2* hitUV){
+bool intersectRaySphere(Ray ray, vec3 center, float radius, HitData* hitData){
 			vec3  u = v3_sub(center, ray.origin);
 
 			//Quadratic formula
 			float a = v3_mag_sqrd(ray.direction);
 			float h = v3_dot(ray.direction, u); // Aparently an optimisation?
-			float c = v3_mag_sqrd(u) - (radius*radius); // Radius is hardcarded to one here.
+			float c = v3_mag_sqrd(u) - (radius*radius);
 			float discriminant = h*h - a*c; // And another optimisation??
 
 			if (discriminant >= 0.0) {
@@ -39,18 +39,16 @@ bool intersectRaySphere(Ray ray, vec3 center, float radius, float* distance, vec
 				 * If rendering the backface this would be important.
 				 * 
 				 */
+				// TODO: Fix t selection. Need the t that is as close to 0 in the positive space (if it exists).
 				float t = (h-discSqrt)/a; // Again, an optimisation.
 				if (t < 0.0) { t = (h+discSqrt)/a; } 
 
-				if (distance != NULL) { *distance = t; }
-
 				if (t > 0.0) {
-						vec3 _hitPoint = pointAlongRay(ray, t);
-					if (hitPoint != NULL) {
-						*hitPoint = _hitPoint;
-					}
-					if (hitNormal != NULL) {
-						*hitNormal = v3_normalise(v3_sub(_hitPoint, center));
+						vec3 hitPoint = pointAlongRay(ray, t);
+					if (hitData != NULL) {
+						hitData->distance = t;
+						hitData->position = hitPoint;
+						hitData->normal = v3_normalise(v3_sub(hitPoint, center));
 					}
 					return true;
 				}

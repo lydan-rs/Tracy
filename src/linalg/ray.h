@@ -11,7 +11,13 @@ typedef struct {
 Ray   normaliseRay  (Ray r);
 vec3  pointAlongRay (Ray r, float t);
 
+typedef struct {
+	vec3  position;
+	vec3  normal;
+	vec2  uv;
+	float distance;
+} HitData;
 
-bool intersectRaySphere(Ray ray, vec3 center, float radius, float* distance, vec3* hitPoint, vec3* hitNormal, vec2* hitUV);
+bool intersectRaySphere(Ray ray, vec3 center, float radius, HitData* hitData);
 
 #endif
