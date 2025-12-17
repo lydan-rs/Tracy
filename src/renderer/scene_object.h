@@ -15,8 +15,11 @@ typedef enum {
 
 typedef struct {
 	vec3 position;
+	float scale;
 	// Transforms
 	ObjectType type;
+	unsigned int id;
+	unsigned int materialID;
 	// ShaderType
 	// Material
 	// Mesh Data

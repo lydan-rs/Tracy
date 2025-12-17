@@ -55,13 +55,15 @@ float  v2_difference (vec2 v);
 vec2   v2_order      (vec2 v);
 vec2   v2_interval   (float min, float max);
 
-float  v3_dot (vec3 a, vec3 b);
-vec3   v3_add (vec3 a, vec3 b);
-vec3   v3_sub (vec3 a, vec3 b);
-float  v3_mag (vec3 v);
+float  v3_dot  (vec3 a, vec3 b);
+vec3   v3_add  (vec3 a, vec3 b);
+vec3   v3_sub  (vec3 a, vec3 b);
+float  v3_mag  (vec3 v);
+vec3   v3_mult (vec3 a, vec3 b);
 vec3   v3_scale      (vec3 v, float t);
 float  v3_mag_sqrd   (vec3 v);
 vec3   v3_normalise  (vec3 v);
 vec3   v3_cross_prod (vec3 a, vec3 b);
+vec3   v3_reflect    (vec3 incoming, vec3 normal);
 
 #endif

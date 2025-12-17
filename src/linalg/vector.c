@@ -136,6 +136,14 @@ vec3 v3_sub(vec3 a, vec3 b) {
 	};
 }
 
+vec3 v3_mult(vec3 a, vec3 b) {
+	return (vec3){
+		.x = a.x*b.x,
+		.y = a.y*b.y,
+		.z = a.z*b.z
+	};
+}
+
 vec3 v3_scale(vec3 v, float scalar) {
 	return (vec3){
 		.x = v.x*scalar,
@@ -169,3 +177,6 @@ vec3 v3_cross_prod(vec3 a, vec3 b) {
 	};
 }
 
+vec3 v3_reflect(vec3 incoming, vec3 normal) {
+	return v3_sub(incoming, v3_scale(normal, 2*v3_dot(incoming, normal)));
+}

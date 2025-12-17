@@ -8,8 +8,10 @@ add_executable(tracy)
 
 target_sources(tracy PRIVATE
 	./src/main.c
+	./src/utils/random.c
 	./src/image/image.c
 	./src/linalg/vector.c
 	./src/linalg/ray.c
 	./src/renderer/scene_object.c
+	./src/renderer/material.c
 )

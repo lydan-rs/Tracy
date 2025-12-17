@@ -17,11 +17,10 @@ bool testIntersection(SceneObject* object, Ray ray, HitRecord* intersection){
 				case SPHERE:
 					{
 						HitData hitData;
-						// TODO: Unhardcode radius
-						bool intersects = intersectRaySphere(ray, object->position, 1.0, &hitData);
+						bool intersects = intersectRaySphere(ray, object->position, object->scale, &hitData);
 						if (intersects && intersection != NULL) {
 							intersection->data = hitData;
-							intersection->objectID = 0; // TODO: Fix when Object IDs are added.
+							intersection->objectID = object->id;
 							intersection->primID = 0; // Sphere's only have one prim
 						}
 						return intersects;
